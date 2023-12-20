@@ -181,13 +181,8 @@ def processDisconnection(ip, s:str):
 
 def typeOfRequest(s:str):
     """The type of a request (CONNECT,INPUT,DISCONNECT)"""
-    type = ""
-    i = 0
-    n = len(s)
-    while i<n and s[i]!=" ":
-        type+=s[i]
-        i+=1
-    return(type)
+    parts = s.split(" ")
+    return(parts[0])
 
 
 def extractPseudo(s:str):
