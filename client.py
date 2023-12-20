@@ -54,6 +54,8 @@ WAITING_TIME = 0.01 # in seconds - period of connection requests when trying to 
 SOCKET_TIMEOUT = 30 # in seconds
 EXIT_TIMEOUT = 5 # in seconds - when trying to disconnect
 
+PING_MEAN_SIZE = 100 # number of Ping values to make the mean of
+PINGS = []
 PING = None # in milliseconds - ping with the server, None when disconnected
 
 LOBBY = True
@@ -403,6 +405,7 @@ def send(input="INPUT " + USERNAME + " . END"):
         str: the normalized answer from the server.
     """
     
+    global PINGS
     global PING
     global SOCKET
     
@@ -439,7 +442,19 @@ def send(input="INPUT " + USERNAME + " . END"):
             if DEBUG:
                 print("answer: ",answer)
              
-            PING = int((time.time() - t) * 1000)
+            ping = int((time.time() - t) * 1000)
+            if len(PINGS) >= PING_MEAN_SIZE:
+                PINGS[0] = []
+            
+            PINGS.append(ping)
+            mean = 0
+            size = 0
+            for v in PINGS:
+                if type(v) in [float, int]:
+                    mean += v
+                    size += 1
+            PING = round(mean / size, 2)
+            
             
             return answer
         except (OSError):
@@ -526,8 +541,9 @@ def update(state="STATE [] END"):
         # dictionary representing the known keywords and the number of parameters in <content> they take
         keywords = {"STATE" : 1, "WALLS" : 1, "SHADES" : 1, "LOBBY" : 1, "GAME" : 1, "TRANSITION_GAME_LOBBY" : 1, "TRANSITION_LOBBY_GAME" : 1}
         
-        if len(messages) >= 3:
-            conc = messages
+        conc = messages
+        
+        if len(conc) >= 3:
             
             if conc[0] in keywords:
                 # generate partial command
